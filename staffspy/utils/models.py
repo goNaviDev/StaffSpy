@@ -96,6 +96,8 @@ class Certification(BaseModel):
 class Experience(BaseModel):
     duration: str | None = None
     title: str | None = None
+    description: str | None = None
+    skills: str | None = None
     company: str | None = None
     location: str | None = None
     emp_type: str | None = None
@@ -108,6 +110,8 @@ class Experience(BaseModel):
             "end_date": self.end_date.isoformat() if self.end_date else None,
             "duration": self.duration,
             "title": self.title,
+            "description": self.description,
+            "skills": self.skills,
             "company": self.company,
             "location": self.location,
             "emp_type": self.emp_type,

@@ -231,3 +231,40 @@ class LinkedInAccount:
             connections_df = clean_df(connections_df)
 
         return connections_df
+
+    def scrape_user(
+        self, user_id: str, block: bool = False, connect: bool = False
+    ) -> pd.DataFrame | None:
+        """Scrape users from Linkedin by user IDs"""
+        if self.on_block:
+            return logger.error(
+                "Account is on cooldown as a safety precaution after receiving a 429 (TooManyRequests) from LinkedIn. Please recreate a new LinkedInAccount to proceed."
+            )
+
+        li_scraper = LinkedInScraper(self.session)
+        li_scraper.num_staff = 1
+
+        user = Staff(
+                id="",
+                search_term="manual",
+                profile_id=user_id,
+                profile_link=f"https://www.linkedin.com/in/{user_id}",
+            )
+
+        user.id, user.urn = li_scraper.fetch_user_profile_data_from_public_id(
+                user.profile_id, "user_id"
+        )
+
+        li_scraper.fetch_all_info_for_employee(user, 1)
+
+        users_dicts = [user.to_dict() for user in [user] if user.id]
+        users_df = pd.DataFrame(users_dicts)
+
+        if users_df.empty:
+            return users_df
+        
+        linkedin_member_df = users_df[users_df["name"] == "LinkedIn Member"]
+        non_linkedin_member_df = users_df[users_df["name"] != "LinkedIn Member"]
+        users_df = pd.concat([non_linkedin_member_df, linkedin_member_df])
+        logger.info(f"Scraped {len(users_df)} users")
+        return users_df

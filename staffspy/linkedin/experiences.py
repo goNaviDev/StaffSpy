@@ -99,10 +99,35 @@ class ExperiencesFetcher:
                             company = parts[0]
                             emp_type = parts[-1].lower()
 
+                    description = None
+                    skills = None
+                    if not (not entity or not entity.get('subComponents')):
+                        for comp in entity.get('subComponents', {}).get('components', []):
+                            fixed_list = comp.get('components', {}).get('fixedListComponent')
+                            if not fixed_list:
+                                continue
+
+                            for inner_comp in fixed_list.get('components', []):
+                                text_component = inner_comp.get('components', {}).get('textComponent')
+                                if not text_component:
+                                    continue
+
+                                attributes = text_component.get('text', {}).get('attributesV2', [])
+
+                                if not attributes:
+                                    text = text_component.get('text', {}).get('text')
+                                    description = text.strip() if text else None
+
+                                if attributes:
+                                    text = text_component.get('text', {}).get('text')
+                                    skills = text.strip() if text else None
+
                     exp = Experience(
                         duration=duration,
                         title=title,
+                        description=description,
                         company=company,
+                        skills=skills,
                         emp_type=emp_type,
                         start_date=start_date,
                         end_date=end_date,
@@ -136,9 +161,36 @@ class ExperiencesFetcher:
             from_date, to_date = utils.parse_duration(duration)
             if from_date:
                 duration = duration.split(" · ")[1]
+
+
+            description = None
+            skills = None
+            if not (not entity or not entity.get('subComponents')):
+                for comp in entity.get('subComponents', {}).get('components', []):
+                    fixed_list = comp.get('components', {}).get('fixedListComponent')
+                    if not fixed_list:
+                        continue
+
+                    for inner_comp in fixed_list.get('components', []):
+                        text_component = inner_comp.get('components', {}).get('textComponent')
+                        if not text_component:
+                            continue
+
+                        attributes = text_component.get('text', {}).get('attributesV2', [])
+
+                        if not attributes:
+                            text = text_component.get('text', {}).get('text')
+                            description = text.strip() if text else None
+
+                        if attributes:
+                            text = text_component.get('text', {}).get('text')
+                            skills = text.strip() if text else None
+        
             exp = Experience(
                 duration=duration,
                 title=title,
+                description=description,
+                skills=skills,
                 company=company,
                 emp_type=emp_type,
                 start_date=start_date,
